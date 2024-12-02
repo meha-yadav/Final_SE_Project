@@ -1,0 +1,73 @@
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: rgb(182, 208, 148);
+    background-image: linear-gradient(rgba(182, 208, 148,0.6),rgba(182, 208, 148,0.6)),url('Gemini_Generated_Image_a09d6ya09d6ya09d.jpg');  /* Replace with your image URL or path */
+    background-size: cover;       /* Ensure the image covers the entire screen */
+    background-repeat: no-repeat; /* Prevent image repetition */
+    background-position: center;  /* Center the image on the screen */
+    background-attachment: fixed; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 20px;
+}
+
+.container {
+    background-color: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 400px;
+    margin: 30px;
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+}
+
+label {
+    display: block;
+    margin-top: 10px;
+    color: #555;
+}
+
+input{
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+select{
+    width: 104%;
+    padding: 8px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+.default{
+    color: #979797;
+}
+
+button {
+    margin-top: 15px;
+    width: 415px;
+    padding: 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+#message {
+    margin-top: 10px;
+    text-align: center;
+}

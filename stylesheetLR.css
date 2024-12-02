@@ -1,0 +1,40 @@
+*{
+    background-image: linear-gradient(rgba(182, 208, 148,0.6),rgba(182, 208, 148,0.6)),url('Gemini_Generated_Image_a09d6ya09d6ya09d.jpg');  /* Replace with your image URL or path */
+            background-size: cover;       /* Ensure the image covers the entire screen */
+            background-repeat: no-repeat; /* Prevent image repetition */
+            background-position: center;  /* Center the image on the screen */
+            background-attachment: fixed; 
+    background-color: rgb(182, 208, 148);
+    font-family: Arial, Helvetica, sans-serif;;
+}
+.latestreport-main{
+    background-color: #ffffec;
+    height: 800px;
+    width: 92%;
+    margin: 50px;
+    border-radius: 50px;
+}
+.LR{
+    text-align: center;
+    margin-left: 41%;
+    background-color: #ffffec;
+    font-weight: bolder;
+    font-size:xx-large;
+}
+ul{
+    margin: 30px;
+    background-color: #ffffec;
+}
+li{
+    background-color: #ffffec;
+}
+.l1{
+    color: black;
+    font-weight: bolder;
+    background-color: #ffffec;
+}
+img{
+    background-color: #ffffec;
+    align-items: center;
+    margin-left: 46%;
+}

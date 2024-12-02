@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <link href="stylesheetLI.css" rel="stylesheet">
+   <title>Login</title>
+   <style>
+       /* Add some basic styling for better appearance */
+       body {
+           font-family: Arial, sans-serif;
+           background-color: #f2f2f2;
+           display: flex;
+           justify-content: center;
+           align-items: center;
+           height: 100vh;
+           margin: 0;
+       }
+       .container {
+           background-color: white;
+           padding: 20px;
+           border-radius: 10px;
+           box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+           text-align: center;
+           width: 300px;
+       }
+       input[type="text"], input[type="password"] {
+           width: 100%;
+           padding: 8px;
+           margin-top: 10px;
+           border: 1px solid #ccc;
+           border-radius: 5px;
+       }
+       button {
+           margin-top: 20px;
+           padding: 10px;
+           width: 100%;
+           background-color: #4CAF50;
+           color: white;
+           border: none;
+           border-radius: 5px;
+           cursor: pointer;
+           font-size: 16px;
+       }
+       button:hover {
+           background-color: #45a049;
+       }
+       #message {
+           margin-top: 15px;
+           color: red;
+       }
+   </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Login</h1>
+        <form id="loginForm">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required><br>
+
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required><br>
+
+            <button type="submit">Login</button>
+        </form>
+        <div id="message"></div>
+    </div>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+            event.preventDefault();  // Prevent form submission
+
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+
+            // Validate against the specified credentials
+            if (username === 'Amazon' && password === 'Amazon123') {
+                window.location.href = 'index_main.htm'; // Redirect to the main page
+            } else {
+                document.getElementById('message').innerText = 'Invalid username or password';
+            }
+        });
+    </script>
+</body>
+</html>

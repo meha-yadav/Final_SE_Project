@@ -1,0 +1,355 @@
+<!--<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monthly Carbon Emission Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+        }
+        .month-container {
+            display: flex;
+            justify-content: space-between;
+        }
+        .month-container input {
+            width: 48%;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px;
+            width: 100%;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Monthly Carbon Emission Calculator</h1>
+        <form id="emissionForm">
+            
+            <label for="coalUsed">Monthly Coal Used (tons):</label>
+            <input type="number" id="coalUsed" placeholder="Enter amount of coal used in tons per month">
+
+            
+            <label for="energyUsed">Monthly Electricity Used (MWh):</label>
+            <input type="number" id="energyUsed" placeholder="Enter electricity consumption in MWh per month">
+
+            
+            <h2>Scope 3: Employee Travel (Monthly)</h2>
+            <label for="transportMode">Transport Mode:</label>
+            <select id="transportMode" onchange="toggleFields()">
+                <option value="car">Car</option>
+                <option value="bus">Bus</option>
+                <option value="train">Train</option>
+                <option value="air">Air Travel</option>
+            </select>
+
+            
+            <div class="transportFields" id="carFields">
+                <label for="fuelUsed">Fuel Used (liters):</label>
+                <input type="number" id="fuelUsed" placeholder="Enter fuel used per month">
+                <label for="commutingDays">Number of Commuting Days per Month:</label>
+                <input type="number" id="commutingDays" placeholder="Enter commuting days per month">
+            </div>
+
+            
+            <div class="transportFields" id="busTrainFields">
+                <label for="tripDistance">Average Distance per Trip (km):</label>
+                <input type="number" id="tripDistance" placeholder="Enter distance per trip (km)">
+                <label for="numTrips">Number of Trips per Month:</label>
+                <input type="number" id="numTrips" placeholder="Enter total number of trips per month">
+            </div>
+
+            
+            <div class="transportFields" id="airFields">
+                <label for="flightType">Flight Type:</label>
+                <select id="flightType">
+                    <option value="0.09">Domestic (0.09 kg CO₂/km)</option>
+                    <option value="0.15">International (0.15 kg CO₂/km)</option>
+                </select>
+                <label for="flightDistance">Total Distance Flown Monthly (km):</label>
+                <input type="number" id="flightDistance" placeholder="Enter total distance flown per month">
+            </div>
+
+            
+            <h2>Monthly Emissions</h2>
+            <div class="month-container">
+                <label for="month1">January:</label>
+                <input type="number" id="month1" placeholder="Emissions for January" disabled>
+
+                <label for="month2">February:</label>
+                <input type="number" id="month2" placeholder="Emissions for February" disabled>
+            </div>
+            
+            <label for="totalEmissions">Total Yearly Emissions (tons):</label>
+            <input type="number" id="totalEmissions" placeholder="Total emissions for the year" disabled>
+
+            <button type="button" onclick="calculateEmissions()">Calculate Emissions</button>
+        </form>
+    </div>
+
+    <script>
+        function calculateEmissions() {
+            // Input values
+            const coalUsed = parseFloat(document.getElementById('coalUsed').value) || 0;
+            const energyUsed = parseFloat(document.getElementById('energyUsed').value) || 0;
+            const transportMode = document.getElementById('transportMode').value;
+
+            // Constants
+            const coalEmissionFactor = 2.6; // kg CO₂ per kg of coal
+            const energyEmissionFactor = 0.708; // kg CO₂ per kWh
+
+            // Scope 1 and 2 Calculations
+            const scope1Emissions = coalUsed * 1000 * coalEmissionFactor / 1000; // Convert tons to tCO₂
+            const scope2Emissions = energyUsed * 1000 * energyEmissionFactor / 1000; // Convert MWh to tCO₂
+
+            let scope3Emissions = 0;
+            // Scope 3 Calculations based on transport mode
+            if (transportMode === 'car') {
+                const fuelUsed = parseFloat(document.getElementById('fuelUsed').value) || 0;
+                scope3Emissions = fuelUsed * 2.31 / 1000; // Default petrol emission factor
+            } else if (transportMode === 'bus' || transportMode === 'train') {
+                const tripDistance = parseFloat(document.getElementById('tripDistance').value) || 0;
+                const numTrips = parseFloat(document.getElementById('numTrips').value) || 0;
+                const emissionFactor = transportMode === 'bus' ? 0.105 : 0.041; // Bus: 0.105 kg/km; Train: 0.041 kg/km
+                scope3Emissions = (tripDistance * numTrips * emissionFactor) / 1000;
+            } else if (transportMode === 'air') {
+                const flightDistance = parseFloat(document.getElementById('flightDistance').value) || 0;
+                const flightEmissionFactor = parseFloat(document.getElementById('flightType').value);
+                scope3Emissions = (flightDistance * flightEmissionFactor) / 1000;
+            }
+
+            const monthlyEmissions = scope1Emissions + scope2Emissions + scope3Emissions;
+
+            // Display Monthly Emissions
+            for (let month = 1; month <= 12; month++) {
+                document.getElementById(`month${month}`).value = monthlyEmissions.toFixed(2);
+            }
+
+            // Calculate and display total yearly emissions
+            const totalYearlyEmissions = monthlyEmissions * 12;
+            document.getElementById('totalEmissions').value = totalYearlyEmissions.toFixed(2);
+        }
+
+        function toggleFields() {
+            const mode = document.getElementById('transportMode').value;
+            document.getElementById('carFields').style.display = (mode === 'car') ? 'block' : 'none';
+            document.getElementById('busTrainFields').style.display = (mode === 'bus' || mode === 'train') ? 'block' : 'none';
+            document.getElementById('airFields').style.display = (mode === 'air') ? 'block' : 'none';
+        }
+
+        window.onload = toggleFields; // Initialize fields on load
+    </script>
+</body>
+</html>-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monthly Carbon Emission Calculator</title>
+    <style>
+        body {
+            background-image: linear-gradient(rgba(182, 208, 148, 0.6), rgba(182, 208, 148, 0.6)), url('Gemini_Generated_Image_a09d6ya09d6ya09d.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-attachment: fixed;
+            font-family: Arial, Helvetica, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px;
+            width: 100%;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .transport-fields {
+            display: none; /* Hide initially */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Monthly Carbon Emission Calculator</h1>
+        <form id="emissionForm">
+            <!-- Existing Fields -->
+            <label for="coalUsed">Coal Used (tons/month):</label>
+            <input type="number" id="coalUsed" placeholder="Enter coal usage">
+
+            <label for="energyUsed">Electricity Used (MWh/month):</label>
+            <input type="number" id="energyUsed" placeholder="Enter electricity consumption">
+
+            <!-- New Renewable Energy Input -->
+            <label for="renewablePercentage">Renewable Energy Percentage (%):</label>
+            <input type="number" id="renewablePercentage" placeholder="Enter percentage of renewable energy">
+
+            <!-- Transport Mode Inputs -->
+            <label for="transportMode">Transport Mode:</label>
+            <select id="transportMode" onchange="toggleFields()">
+                <option value="">Select Transport Mode</option>
+                <option value="car">Car</option>
+                <option value="bus">Bus</option>
+                <option value="train">Train</option>
+                <option value="air">Air Travel</option>
+            </select>
+
+            <!-- Car Fields -->
+            <div id="carFields" class="transport-fields">
+                <label for="fuelUsed">Fuel Used (liters/month):</label>
+                <input type="number" id="fuelUsed" placeholder="Enter fuel used">
+                <label for="commutingDays">Commuting Days (days/month):</label>
+                <input type="number" id="commutingDays" placeholder="Enter commuting days">
+            </div>
+
+            <!-- Bus/Train Fields -->
+            <div id="busTrainFields" class="transport-fields">
+                <label for="tripDistance">Average Distance per Trip (km):</label>
+                <input type="number" id="tripDistance" placeholder="Enter distance per trip">
+                <label for="numTrips">Number of Trips per Month:</label>
+                <input type="number" id="numTrips" placeholder="Enter number of trips per month">
+            </div>
+
+            <!-- Air Travel Fields -->
+            <div id="airFields" class="transport-fields">
+                <label for="flightType">Flight Type:</label>
+                <select id="flightType">
+                    <option value="0.09">Domestic (0.09 kg CO₂/km)</option>
+                    <option value="0.15">International (0.15 kg CO₂/km)</option>
+                </select>
+                <label for="flightDistance">Flight Distance (km/month):</label>
+                <input type="number" id="flightDistance" placeholder="Enter flight distance">
+            </div>
+
+            <button type="button" onclick="calculateEmissions()">Calculate Emissions</button>
+        </form>
+    </div>
+
+    <script>
+        function toggleFields() {
+            // Hide all transport fields initially
+            document.getElementById('carFields').style.display = 'none';
+            document.getElementById('busTrainFields').style.display = 'none';
+            document.getElementById('airFields').style.display = 'none';
+
+            // Show relevant fields based on the selected transport mode
+            const transportMode = document.getElementById('transportMode').value;
+            if (transportMode === 'car') {
+                document.getElementById('carFields').style.display = 'block';
+            } else if (transportMode === 'bus' || transportMode === 'train') {
+                document.getElementById('busTrainFields').style.display = 'block';
+            } else if (transportMode === 'air') {
+                document.getElementById('airFields').style.display = 'block';
+            }
+        }
+
+            function calculateEmissions() {
+    // Retrieve general inputs
+    const coalUsed = parseFloat(document.getElementById('coalUsed').value) || 0;
+    const energyUsed = parseFloat(document.getElementById('energyUsed').value) || 0;
+    const renewablePercentage = parseFloat(document.getElementById('renewablePercentage').value) || 0;
+
+    // Calculate Scope 1: Direct emissions (coal, fuel)
+    const coalEmissions = coalUsed * 2.86; // Example: 2.86 tons CO₂ per ton of coal
+    const fuelUsed = parseFloat(document.getElementById('fuelUsed').value) || 0;
+    const fuelEmissions = fuelUsed * 2.31; // Example: 2.31 kg CO₂ per liter of gasoline
+    
+    const scope1 = coalEmissions + fuelEmissions;
+
+    // Calculate Scope 2: Indirect emissions (electricity)
+    const netEnergyUsed = energyUsed * (1 - (renewablePercentage / 100));
+    const scope2 = netEnergyUsed * 0.92; // Example: 0.92 tons CO₂ per MWh
+
+    // Calculate Scope 3: Transport-related emissions
+    const transportMode = document.getElementById('transportMode').value;
+    let scope3 = 0;
+
+    if (transportMode === 'bus' || transportMode === 'train') {
+        const tripDistance = parseFloat(document.getElementById('tripDistance').value) || 0;
+        const numTrips = parseFloat(document.getElementById('numTrips').value) || 0;
+        scope3 = tripDistance * numTrips * 0.08; // Example: 0.08 kg CO₂/km for bus/train
+    } else if (transportMode === 'air') {
+        const flightType = parseFloat(document.getElementById('flightType').value) || 0;
+        const flightDistance = parseFloat(document.getElementById('flightDistance').value) || 0;
+        scope3 = flightDistance * flightType; // CO₂ emissions per km (domestic or international)
+    }
+
+    // Calculate total emissions
+    const total = scope1 + scope2 + scope3;
+
+    // Store results in localStorage
+    localStorage.setItem('scope1', scope1.toFixed(2));
+    localStorage.setItem('scope2', scope2.toFixed(2));
+    localStorage.setItem('scope3', scope3.toFixed(2));
+    localStorage.setItem('total', total.toFixed(2));
+
+    // Redirect to the results page
+    window.location.href = "results.htm";
+}
+
+        
+    </script>
+</body>
+</html>

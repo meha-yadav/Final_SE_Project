@@ -1,0 +1,380 @@
+<!--<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carbon Emission Tracker</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-radialbar"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        canvas {
+            width: 100%;
+            height: 400px;
+        }
+        .chart-container {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+        }
+        .chart-container > div {
+            flex: 1;
+            min-width: 350px;
+            margin: 15px;
+        }
+        .progress-container {
+            margin-top: 30px;
+        }
+        .progress-bar {
+            height: 30px;
+            background-color: #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .progress {
+            height: 100%;
+            text-align: center;
+            color: white;
+            font-weight: bold;
+        }
+        .recommendations {
+            background-color: #e8f9e8;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .button {
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Carbon Emission Tracker</h1>
+        <div class="chart-container">
+            
+            <div>
+                <h2>Total Emissions Progress</h2>
+                <canvas id="emissionProgress"></canvas>
+            </div>
+            
+            <div>
+                <h2>Emissions Breakdown</h2>
+                <canvas id="emissionPieChart"></canvas>
+            </div>
+        </div>
+        <div class="chart-container">
+            
+            <div>
+                <h2>Emissions Comparison (Scope 1, 2, 3)</h2>
+                <canvas id="emissionBarChart"></canvas>
+            </div>
+            
+            <div>
+                <h2>Emission Range Distribution</h2>
+                <canvas id="emissionHistogram"></canvas>
+            </div>
+        </div>
+        
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress" id="progress" style="width: 0%; background-color: green;">0 / 10,000 tCO₂</div>
+            </div>
+        </div>
+
+        
+        <div class="recommendations">
+            <h2>Personalized Recommendations</h2>
+            <p>Based on your carbon emission results, here are some actions you can take to reduce your emissions:</p>
+            <ul id="recommendationList">
+                
+            </ul>
+        </div>
+
+        <div class="button">
+            <button onclick="window.location.href='recommendations.html';">View Detailed Recommendations</button>
+        </div>
+    </div>
+
+    <script>
+        window.onload = function() {
+            // Retrieve stored emissions data from localStorage
+            const scope1 = parseFloat(localStorage.getItem('scope1')) || 0;
+            const scope2 = parseFloat(localStorage.getItem('scope2')) || 0;
+            const scope3 = parseFloat(localStorage.getItem('scope3')) || 0;
+            const total = parseFloat(localStorage.getItem('total')) || 0;
+
+            // Update Progress Bar
+            const progressBar = document.getElementById('progress');
+            let percentage = Math.min((total / 10000) * 100, 100); // Max limit of 10,000 tCO₂
+            progressBar.style.width = percentage + '%';
+            progressBar.innerText = `${total.toFixed(2)} / 10,000 tCO₂`;
+
+            // Create Pie Chart for Emissions Breakdown
+            const ctxPie = document.getElementById('emissionPieChart').getContext('2d');
+            const emissionPieChart = new Chart(ctxPie, {
+                type: 'pie',
+                data: {
+                    labels: ['Scope 1', 'Scope 2', 'Scope 3'],
+                    datasets: [{
+                        label: 'Emissions Breakdown',
+                        data: [scope1, scope2, scope3],
+                        backgroundColor: ['#ff9999', '#66b3ff', '#99ff99'],
+                        hoverOffset: 4,
+                        datalabels: {
+                            color: '#fff',
+                            font: { weight: 'bold' }
+                        }
+                    }]
+                },
+                options: {
+                    plugins: {
+                        datalabels: {
+                            display: true,
+                            align: 'center',
+                            font: { size: 16 }
+                        }
+                    }
+                }
+            });
+
+            // Create Bar Chart for Emissions Comparison (Scope 1, 2, 3)
+            const ctxBar = document.getElementById('emissionBarChart').getContext('2d');
+            const emissionBarChart = new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: ['Scope 1', 'Scope 2', 'Scope 3'],
+                    datasets: [{
+                        label: 'Emissions (tCO₂)',
+                        data: [scope1, scope2, scope3],
+                        backgroundColor: ['#ff9999', '#66b3ff', '#99ff99'],
+                        borderColor: ['#ff6666', '#3399ff', '#66cc66'],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Create Histogram for Emissions Range Distribution
+            const ctxHist = document.getElementById('emissionHistogram').getContext('2d');
+            const emissionHistogram = new Chart(ctxHist, {
+                type: 'bar',
+                data: {
+                    labels: ['0-2', '2-4', '4-6', '6-8', '8-10'],
+                    datasets: [{
+                        label: 'Emission Ranges',
+                        data: [
+                            scope1 < 2 ? 1 : (scope1 < 4 ? 2 : (scope1 < 6 ? 3 : (scope1 < 8 ? 4 : 5))),
+                            scope2 < 2 ? 1 : (scope2 < 4 ? 2 : (scope2 < 6 ? 3 : (scope2 < 8 ? 4 : 5))),
+                            scope3 < 2 ? 1 : (scope3 < 4 ? 2 : (scope3 < 6 ? 3 : (scope3 < 8 ? 4 : 5)))
+                        ],
+                        backgroundColor: ['#ff9999', '#66b3ff', '#99ff99'],
+                        borderColor: '#ddd',
+                        borderWidth: 1
+                    }]
+                }
+            });
+
+            // Create Radial Progress Bar for Total Emissions
+            const ctxProgress = document.getElementById('emissionProgress').getContext('2d');
+            const emissionProgress = new Chart(ctxProgress, {
+                type: 'radialGauge',
+                data: {
+                    labels: ['Total Emissions'],
+                    datasets: [{
+                        data: [total],
+                        backgroundColor: ['#ff6666'],
+                        borderWidth: 8
+                    }]
+                },
+                options: {
+                    rotation: Math.PI,
+                    circumference: Math.PI,
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+
+            // Dynamic Recommendations
+            const recommendationList = document.getElementById('recommendationList');
+            if (scope1 > 2000) {
+                recommendationList.innerHTML += "<li>Consider reducing Scope 1 emissions by adopting renewable energy sources and improving energy efficiency.</li>";
+            }
+            if (scope2 > 2000) {
+                recommendationList.innerHTML += "<li>Switch to energy-efficient appliances and consider investing in green energy to reduce Scope 2 emissions.</li>";
+            }
+            if (scope3 > 2000) {
+                recommendationList.innerHTML += "<li>Encourage your employees to adopt eco-friendly transport options, such as electric vehicles or public transport, to lower Scope 3 emissions.</li>";
+            }
+        }
+    </script>
+</body>
+</html>-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carbon Emission Results</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background-image: linear-gradient(rgba(182, 208, 148, 0.6), rgba(182, 208, 148, 0.6)), url('Gemini_Generated_Image_a09d6ya09d6ya09d.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-attachment: fixed;
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: rgb(182, 208, 148);
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+        }
+        .result {
+            margin: 20px 0;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background-color: #f3f3f3;
+            border-radius: 5px;
+        }
+        .progress-bar-filled {
+            height: 100%;
+            background-color: #4CAF50;
+            border-radius: 5px;
+            text-align: center;
+            line-height: 30px;
+            color: white;
+            font-weight: bold;
+        }
+        .chart-container {
+            margin-top: 30px;
+        }
+        .button {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 16px;
+        }
+        .button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Carbon Emission Results</h1>
+        <div class="result">
+            <h2>Total Emissions: <span id="totalEmissionsText"></span> tons CO₂</h2>
+            <div class="progress-bar">
+                <div id="progressBarFilled" class="progress-bar-filled"></div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="chart-container">
+            <canvas id="emissionChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <canvas id="breakdownChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <canvas id="wasteWaterChart"></canvas>
+        </div>
+
+        <a href="recommendations.htm" class="button">Go to Recommendations</a>
+    </div>
+
+    <script>
+        // Retrieve emissions data
+        // Retrieve emissions data from localStorage
+const scope1Emissions = parseFloat(localStorage.getItem('scope1')) || 0;
+const scope2Emissions = parseFloat(localStorage.getItem('scope2')) || 0;
+const scope3Emissions = parseFloat(localStorage.getItem('scope3')) || 0;
+const totalEmissions = parseFloat(localStorage.getItem('total')) || 0;
+
+// Display total emissions in text
+document.getElementById('totalEmissionsText').innerText = totalEmissions.toFixed(2);
+
+// Update progress bar based on total emissions (assuming 1000 tons as max for display)
+const progressPercentage = Math.min((totalEmissions / 1000) * 100, 100);
+const progressBarFilled = document.getElementById('progressBarFilled');
+progressBarFilled.style.width = progressPercentage + '%';
+progressBarFilled.innerText = `${totalEmissions.toFixed(2)} tons`;
+
+// Configure Scope Emission Charts using Chart.js
+const ctx = document.getElementById('emissionChart').getContext('2d');
+new Chart(ctx, {
+    type: 'pie',
+    data: {
+        labels: ['Scope 1', 'Scope 2', 'Scope 3'],
+        datasets: [{
+            data: [scope1Emissions, scope2Emissions, scope3Emissions],
+            backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'],
+        }]
+    },
+    options: { plugins: { legend: { position: 'top' } } }
+});
+
+// Bar Chart for Breakdown of Scopes
+new Chart(document.getElementById('breakdownChart'), {
+    type: 'bar',
+    data: {
+        labels: ['Scope 1', 'Scope 2', 'Scope 3'],
+        datasets: [{
+            label: 'Emissions (tons CO₂)',
+            data: [scope1Emissions, scope2Emissions, scope3Emissions],
+            backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56']
+        }]
+    },
+    options: { scales: { y: { beginAtZero: true } } }
+});
+
+        // Placeholder data for waste and water chart (ensure to update dynamically in future)
+        
+        
+    </script>
+</body>
+</html>
